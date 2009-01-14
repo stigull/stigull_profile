@@ -8,10 +8,10 @@ from django.utils.translation import ugettext, ugettext_lazy as _
 from stigull_profile.models import StigullUserProfile
 from stigull_profile.forms import StigullUserProfileForm
 
-from user_profile.settings import controller 
+from user_profile.settings import controller
 from user_profile.admin import UserWithProfileAdmin
-from user_profile.models import Website 
-from user_profile.utils import reset_password
+from user_profile.models import Website
+from user_profile.utils import reset_password_link
 
 def in_stigull(user):
     """
@@ -38,7 +38,7 @@ def is_freshman(user):
         return False
 is_freshman.short_description = _(u"Nýnemi")
 is_freshman.boolean = True
-    
+
 
 class StigullUserWithProfileAdmin(UserWithProfileAdmin):
     fieldsets = (
@@ -47,10 +47,10 @@ class StigullUserWithProfileAdmin(UserWithProfileAdmin):
         (_('Permissions'), {'fields': ('is_staff', 'is_active', 'is_superuser', 'user_permissions')}),
         (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
         (_('Groups'), {'fields': ('groups',)}),
-    ) 
-    
-    list_display = UserWithProfileAdmin.list_display + (in_stigull, is_freshman)
-   
+    )
+
+    list_display = UserWithProfileAdmin.list_display + (in_stigull, is_freshman, reset_password_link)
+
 controller.register(StigullUserWithProfileAdmin, StigullUserProfileForm) #Connects the StigullUserProfile with the UserProfile functionality
 
 def save_user(sender, instance, raw, **kwargs):
@@ -72,5 +72,4 @@ def save_user_profile(sender, instance, created, raw, **kwargs):
         homepage, created = Website.objects.get_or_create(url = "http://www.hi.is/~%s" % instance.user.username,
                             name = ugettext(u"Heimasvæði"))
         instance.homepages.add(homepage)
-        #TODO: Uncomment for live reset_password(instance.user)
 signals.post_save.connect(save_user_profile, sender = StigullUserProfile)
