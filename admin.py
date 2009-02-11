@@ -50,6 +50,7 @@ class StigullUserWithProfileAdmin(UserWithProfileAdmin):
     )
 
     list_display = UserWithProfileAdmin.list_display + (in_stigull, is_freshman, reset_password_link)
+    list_filter = UserWithProfileAdmin.list_filter + ("groups",)
 
 controller.register(StigullUserWithProfileAdmin, StigullUserProfileForm) #Connects the StigullUserProfile with the UserProfile functionality
 
