@@ -8,10 +8,11 @@ from django.utils.translation import ugettext, ugettext_lazy as _
 from stigull_profile.models import StigullUserProfile
 from stigull_profile.forms import StigullUserProfileForm
 
+from emailer.actions import SendAction
 from user_profile.settings import controller
 from user_profile.admin import UserWithProfileAdmin
 from user_profile.models import Website
-from user_profile.utils import reset_password_link
+from user_profile.utils import ResetPasswordWrapper
 
 def in_stigull(user):
     """
@@ -51,6 +52,16 @@ class StigullUserWithProfileAdmin(UserWithProfileAdmin):
 
     list_display = UserWithProfileAdmin.list_display + (in_stigull, is_freshman,)
     list_filter = UserWithProfileAdmin.list_filter + ("groups",)
+    actions = ['reset_and_send_password', ]
+
+    def reset_and_send_password(self, request, queryset):
+        if queryset.all().count() == 1:
+            wrapped_instance = ResetPasswordWrapper(queryset[0])
+            action = SendAction(request, wrapped_instance)
+            return action.process()
+        else:
+            self.message_user(request, u"Aðeins er hægt að frumstilla lykilorðið hjá einum í einu!")
+    reset_and_send_password.short_description = _(u"Frumstilla lykilorð")
 
 controller.register(StigullUserWithProfileAdmin, StigullUserProfileForm) #Connects the StigullUserProfile with the UserProfile functionality
 
